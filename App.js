@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import {useState} from 'react'
+import axios from 'axios'
 
 // Testing the post data..
 let arr = [
@@ -10,25 +11,101 @@ let arr = [
 
 export default function App() {
 
-  const [post, setPost] = useState(arr)
+  const [input, setInput] = useState("")
+  const [post, setPost] = useState([])
+
+  const onSubmit = () => {
+    if(input.trim() == "")  return;
+    updatePosts(input)
+    updatePosts("loading...", false, true)
+    setInput("")
+    fetchBotResponse().then((res) => {
+      console.log(res)
+      updatePosts(res.bot.trim(), true)
+    })
+  }
+
+  const fetchBotResponse = async () => {
+    const { data } = await axios.post(
+      "https://himai.onrender.com",
+      { input },
+      {
+        headers:{
+          "Content-Type":"application/json",
+        },
+      }
+    );
+    return data;
+  }
+
+  const autoTypingBotResponse = (text) => {
+    let index = 0;
+    let interval = setInterval(() => {
+        if (index < text.length) {
+            setPost((prevState) => {
+                let lastItem = prevState.pop();
+                if (lastItem.type !== "bot") {
+                    prevState.push({
+                        type: "bot",
+                        post: text.charAt(index - 1),
+                    });
+                } else {
+                    prevState.push({
+                        type: "bot",
+                        post: lastItem.post + text.charAt(index - 1),
+                    });
+                }
+                return [...prevState];
+            });
+            index++;
+        } else {
+            clearInterval(interval);
+        }
+    }, 20);
+  };
+
+
+  const updatePosts = (post, isBot, isLoading) => {
+    if(isBot){
+      autoTypingBotResponse(post)
+    }else{
+      setPost(prevState => {
+        return [
+          ...prevState,
+          {type: isLoading ? "loading" : "user", post: post},
+        ]
+      })
+    }
+  }
 
   return (
     <View style={styles.container}>
       <View>
-        {post.map(item => (
+        {post.map((post,index) => (
           <View style={styles.posts}>
-            {item.post}
+            {post.type == 'loading' ? 
+            ("loading..")
+            :
+            (post.post)
+            }
           </View>
         ))}
         
       </View>
       
       <View style={styles.inputView}>
+        
         <TextInput style={styles.input}
-        placeholder='Ask me, anything?' />
-        <Button style={styles.send} 
-          
+        value={input}
+        type='text'
+        placeholder='Ask me, anything?' 
+        onChange={(e) => {setInput(e.target.value)}}
         />
+
+        <Button style={styles.send}
+        onPress={onSubmit}
+        />
+
       </View>
       
       <StatusBar style="auto" />
@@ -67,7 +144,7 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     outline: '0',
     border: '0',
-    width:'85%',
+    width:'87%',
     backgroundColor: 'transparent',
     border:'none',
   },
