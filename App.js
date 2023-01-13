@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import {useState} from 'react'
 import axios from 'axios'
+import Ionicons from '@expo/vector-icons/Ionicons'
 
 // Testing the post data..
 let arr = [
@@ -82,12 +83,18 @@ export default function App() {
     <View style={styles.container}>
       <View>
         {post.map((post,index) => (
-          <View style={styles.posts}>
-            {post.type == 'loading' ? 
-            ("loading..")
-            :
-            (post.post)
-            }
+          <View style={styles.upper}>
+            <View>
+              <Ionicons name = {post.type == "bot" || post.type == "loading" ? 'logo-ionitron' : 'person'} size={20} color='white' />
+            </View>
+            
+            <View style={styles.posts}>
+              {post.type == 'loading' ? 
+              <Ionicons name = 'ion-loading-a' size={20} color='white' />
+              :
+              (post.post)
+              }
+            </View>
           </View>
         ))}
         
@@ -101,10 +108,9 @@ export default function App() {
         placeholder='Ask me, anything?' 
         onChange={(e) => {setInput(e.target.value)}}
         />
-
-        <Button style={styles.send}
-        onPress={onSubmit}
-        />
+        <TouchableHighlight onPress={onSubmit}>
+          <Ionicons name = 'send' size={20} color='white' />
+        </TouchableHighlight>
 
       </View>
       
@@ -120,6 +126,10 @@ const styles = StyleSheet.create({
     alignItems: 'left',
     color: 'White',
     padding: '20px',
+  },
+  upper: {
+    flexDirection: 'row',
+    gap: '10px',
   },
   inputView: {
     // display: 'flex',
